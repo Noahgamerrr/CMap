@@ -15,7 +15,6 @@ int main() {
     init_map(&map);
     char* test = "sus";
     printf("%d", *(int*)mapget(map, test));
-    free(test);
     mapfree(map);
     return 0;
 }
