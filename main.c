@@ -3,7 +3,6 @@
 
 int val = 5;
 int val2 = 7;
-int val3 = 8;
 
 void init_map(struct Map* map) {
     char *key = "test1";
@@ -21,6 +20,7 @@ void init_map(struct Map* map) {
 }
 
 void printputifabsent(struct Map *map) {
+    static int val3 = 8;
     printf("----------START PUT IF ABSENT----------\n");
     char *key3 = "test3";
     int *ptr3 = NULL;
@@ -126,7 +126,45 @@ void printremovepair(struct Map *map) {
     def = NULL;
 }
 
+void printreplace(struct Map *map) {
+    printf("----------START REPLACE----------\n");
+    char* test = "test2";
+    int* def = NULL;
+    static int defval = 15;
+    def = &defval;
+    printf("----------CURRENT ENTRIES----------\n");
+    printentries(map);
+    printf("--------------------------------\n");
+    printf("Replaced value: %d\n", *(int*)mapreplace(map, test, def));
+    printf("----------CURRENT ENTRIES----------\n");
+    printentries(map);
+    test = NULL;
+    def = NULL;
+}
+
+void printreplacepair(struct Map *map) {
+    printf("----------START REPLACE----------\n");
+    char* test = "test2";
+    int* old = NULL;
+    static int old_val = 15;
+    old = &old_val;
+    int* def = NULL;
+    int defval = 7;
+    def = &defval;
+    printf("----------CURRENT ENTRIES----------\n");
+    printentries(map);
+    printf("--------------------------------\n");
+    printf("Was replaced: %d\n", mapreplacepair(map, test, old, def));
+    printf("----------CURRENT ENTRIES----------\n");
+    printentries(map);
+    printf("Was replaced: %d\n", mapreplacepair(map, test, old, def));
+    test = NULL;
+    def = NULL;
+    old = NULL;
+}
+
 void runtests(struct Map *map) {
+    init_map(map);
     printputifabsent(map);
     printkeys(map);
     printvalues(map);
@@ -136,12 +174,15 @@ void runtests(struct Map *map) {
     printcontains(map);
     printremove(map);
     printremovepair(map);
+    mapfree(map);
+    init_map(map);
+    printreplace(map);
+    printreplacepair(map);
 }
 
 int main() {
     struct Map map = Map_init;
     map.key_type = STRING;
-    init_map(&map);
     runtests(&map);
     printf("----------SUCCESSFUL----------");
     mapfree(&map);

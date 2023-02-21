@@ -153,7 +153,7 @@ static void mapset(struct Map *map, void* key, void* value) {
 void mapput(struct Map *map, void* key, void* value) {
     if (!mapcontains(map, key)) {
         map->map_size++;
-        if (mapempty(map)) map->entries = (struct Entry*)malloc(sizeof(struct Entry));
+        if (map->map_size == 1) map->entries = (struct Entry*)malloc(sizeof(struct Entry));
         else map->entries = (struct Entry*)realloc(map->entries, map->map_size*sizeof(struct Entry));
         map->entries[map->map_size - 1].key = key;
         map->entries[map->map_size - 1].value = value;
@@ -246,6 +246,41 @@ void* mapremove(struct Map *map, void* key) {
 bool mapremovepair(struct Map *map, void* key, void* value) {
     if (!(mapcontains(map, key) && mapkeycmp(map->value_type, mapget(map, key), value))) return false;
     mapremove(map, key);
+    return true;
+}
+
+/*
+    Replaces a value of a key if key is present in map
+    @param map The map where the value needs to be changed
+    @param key The key where the value needs to be changed
+    @param value The new value
+    @return Returns the old value linked to the key before the replacement
+*/
+void* mapreplace(struct Map *map, void* key, void* value) {
+    struct Entry* entries = mapentries(map);
+    void* old_value = NULL;
+    for (size_t i = 0; i < mapsize(map); i++) {
+        if (mapkeycmp(map->key_type, entries[i].key, key)) {
+            old_value = entries[i].value;
+            entries[i].value = value;
+            break;
+        }
+    }
+    entries = NULL;
+    return old_value;
+}
+
+/*
+    Replaces a value of a key if key is present in map and old_value is linked to key
+    @param map The map where the value needs to be changed
+    @param key The key where the value needs to be changed
+    @param old_value The value previously linked to the key
+    @param value The new value
+    @return Returns true if the old_value actually was linked to the key, thus was replaced by value
+*/
+bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value) {
+    if (!(mapcontains(map, key) && mapkeycmp(map->value_type, mapget(map, key), old_value))) return false;
+    mapreplace(map, key, value);
     return true;
 }
 
