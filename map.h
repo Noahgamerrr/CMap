@@ -29,7 +29,8 @@ struct Map {
     size_t map_size; //The size of the map
     struct Entry* entries; //The entries inside the map
     enum type key_type; //The data type of the key
-} Map_init = {0, NULL, INTEGER};
+    enum type value_type; //The data type of the value
+} Map_init = {0, NULL, INTEGER, INTEGER};
 
 
 //Declaration of the struct Entry
@@ -81,18 +82,12 @@ static bool mapkeycmp(enum type key_type, void* map_key, void* key) {
 }
 
 /*
-    Sets the value of an already existing key in a map
-    @param map The map where the value needs to be set
-    @param key The key where the value needs to be changed
-    @param value The new value
+    Checks if the map is empty
+    @param map The map
+    @return Is the map empty or not
 */
-static void mapset(struct Map *map, void* key, void* value) {
-    for (size_t i = 0; i < map->map_size; i++) {
-        if (mapkeycmp(map->key_type, map->entries[i].key, key)) {
-            map->entries[i].value = value;
-            return;
-        }
-    }
+bool mapempty(struct Map *map) {
+    return map->map_size == 0;
 }
 
 /*
@@ -123,6 +118,32 @@ void* mapgetordefault(struct Map *map, void* key, void* def) {
     return def;
 }
 
+
+/*
+    Checks if the map contains a specific key
+    @param map The map
+    @param key The key 
+    @return Does the map contain the key
+*/
+bool mapcontains(struct Map *map, void* key) {
+    return (mapget(map, key) != NULL);
+}
+
+/*
+    Sets the value of an already existing key in a map
+    @param map The map where the value needs to be set
+    @param key The key where the value needs to be changed
+    @param value The new value
+*/
+static void mapset(struct Map *map, void* key, void* value) {
+    for (size_t i = 0; i < map->map_size; i++) {
+        if (mapkeycmp(map->key_type, map->entries[i].key, key)) {
+            map->entries[i].value = value;
+            return;
+        }
+    }
+}
+
 /*
     Puts a key-value-pair into the map
     @param map The map in which the entry is saved
@@ -130,9 +151,9 @@ void* mapgetordefault(struct Map *map, void* key, void* def) {
     @param The value linked to the key
 */
 void mapput(struct Map *map, void* key, void* value) {
-    if (mapget(map, key) == NULL) {
+    if (!mapcontains(map, key)) {
         map->map_size++;
-        if (map->map_size == 1) map->entries = (struct Entry*)malloc(sizeof(struct Entry));
+        if (mapempty(map)) map->entries = (struct Entry*)malloc(sizeof(struct Entry));
         else map->entries = (struct Entry*)realloc(map->entries, map->map_size*sizeof(struct Entry));
         map->entries[map->map_size - 1].key = key;
         map->entries[map->map_size - 1].value = value;
@@ -190,6 +211,42 @@ void** mapvalues(struct Map *map) {
     void** values = malloc(map->map_size * sizeof(void*));
     for (size_t i = 0; i < map->map_size; i++) values[i] = map->entries[i].value;
     return values;
+}
+
+/*
+    Removes a key from the map
+    @param map The map where the key needs to be removed
+    @param key The key to be removed
+    @return The value which was linked to the key
+*/
+void* mapremove(struct Map *map, void* key) {
+    struct Entry* entries = mapentries(map);
+    void* value = NULL;
+    for (size_t i = 0; i < mapsize(map); i++) {
+        if (mapkeycmp(map->key_type, entries[i].key, key)) {
+            value = entries[i].value;
+            for (size_t j = i; j < mapsize(map) - 1; j++) entries[i] = entries[i+1];
+            map->map_size--;
+            if (!mapempty(map)) map->entries = (struct Entry*)realloc(map->entries, map->map_size*sizeof(struct Entry));
+            else map->entries = NULL;
+            break;
+        }
+    }
+    entries = NULL;
+    return value;
+}
+
+/*
+    Removes a key-value-pair from the map
+    @param map The map where the key needs to be removed
+    @param key The key to be removed
+    @param value The value to the pair
+    @return Returns true if the key-value-relation had been present in the map and has thus been removed
+*/
+bool mapremovepair(struct Map *map, void* key, void* value) {
+    if (!(mapcontains(map, key) && mapkeycmp(map->value_type, mapget(map, key), value))) return false;
+    mapremove(map, key);
+    return true;
 }
 
 /*
