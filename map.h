@@ -39,6 +39,26 @@ struct Entry {
     void* value; //The value
 };
 
+static bool mapkeycmp(enum type key_type, void* map_key, void* key);
+bool mapempty(struct Map *map);
+void* mapget(struct Map *map, void* key);
+void* mapgetordefault(struct Map *map, void* key, void* def);
+bool mapcontainskey(struct Map *map, void* key);
+bool mapcontainsvalue(struct Map *map, void* value);
+static void mapset(struct Map *map, void* key, void* value);
+void mapput(struct Map *map, void* key, void* value);
+bool mapputifabsent(struct Map *map, void* key, void* value);
+size_t mapsize(struct Map *map);
+struct Entry* mapentries(struct Map *map);
+void** mapkeys(struct Map *map);
+void** mapvalues(struct Map *map);
+void* mapremove(struct Map *map, void* key);
+bool mapremovepair(struct Map *map, void* key, void* value);
+void* mapreplace(struct Map *map, void* key, void* value);
+bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value);
+void mapforeach(struct Map *map, void (*operation)(void*, void*));
+void mapfree(struct Map *map);
+
 /*
     This function compares two keys and returns if they're equal or not
     @param key_type The type of the key
@@ -125,8 +145,27 @@ void* mapgetordefault(struct Map *map, void* key, void* def) {
     @param key The key 
     @return Does the map contain the key
 */
-bool mapcontains(struct Map *map, void* key) {
+bool mapcontainskey(struct Map *map, void* key) {
     return (mapget(map, key) != NULL);
+}
+
+/*
+    Checks if the map contains a specific value
+    @param map The map
+    @param value The value 
+    @return Does the map contain the value
+*/
+bool mapcontainsvalue(struct Map *map, void* value) {
+    void** values = mapvalues(map);
+    bool contains_value = false;
+    for (size_t i = 0; i < mapsize(map); i++) {
+        if (mapkeycmp(map->value_type, values[i], value)) {
+            contains_value = true;
+            break;
+        }
+    }
+    values = NULL;
+    return contains_value;
 }
 
 /*
@@ -151,7 +190,7 @@ static void mapset(struct Map *map, void* key, void* value) {
     @param The value linked to the key
 */
 void mapput(struct Map *map, void* key, void* value) {
-    if (!mapcontains(map, key)) {
+    if (!mapcontainskey(map, key)) {
         map->map_size++;
         if (map->map_size == 1) map->entries = (struct Entry*)malloc(sizeof(struct Entry));
         else map->entries = (struct Entry*)realloc(map->entries, map->map_size*sizeof(struct Entry));
@@ -244,7 +283,7 @@ void* mapremove(struct Map *map, void* key) {
     @return Returns true if the key-value-relation had been present in the map and has thus been removed
 */
 bool mapremovepair(struct Map *map, void* key, void* value) {
-    if (!(mapcontains(map, key) && mapkeycmp(map->value_type, mapget(map, key), value))) return false;
+    if (!(mapcontainskey(map, key) && mapkeycmp(map->value_type, mapget(map, key), value))) return false;
     mapremove(map, key);
     return true;
 }
@@ -279,9 +318,21 @@ void* mapreplace(struct Map *map, void* key, void* value) {
     @return Returns true if the old_value actually was linked to the key, thus was replaced by value
 */
 bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value) {
-    if (!(mapcontains(map, key) && mapkeycmp(map->value_type, mapget(map, key), old_value))) return false;
+    if (!(mapcontainskey(map, key) && mapkeycmp(map->value_type, mapget(map, key), old_value))) return false;
     mapreplace(map, key, value);
     return true;
+}
+
+/*
+    Takes a function and runs it through every entry in the map
+    @param map The map where the function should be looped through
+    @param operation The function which is run through every Entry 
+        (takes as parameters (void* key, void* value))
+*/
+void mapforeach(struct Map *map, void (*operation)(void*, void*)) {
+    struct Entry* entries = mapentries(map);
+    for (size_t i = 0; i < mapsize(map); i++) operation(entries[i].key, entries[i].value);
+    entries = NULL;
 }
 
 /*

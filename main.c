@@ -19,6 +19,10 @@ void init_map(struct Map* map) {
     ptr2 = NULL;
 }
 
+void incrementvalue(void* key, void* value) {
+    (*(int*)value)++;
+}
+
 void printputifabsent(struct Map *map) {
     static int val3 = 8;
     printf("----------START PUT IF ABSENT----------\n");
@@ -77,9 +81,9 @@ void printgetordefault(struct Map *map) {
 void printcontains(struct Map *map) {
     printf("----------START CONTAINS----------\n");
     char* test = "test1";
-    printf("%d\n", mapcontains(map, test));
+    printf("%d\n", mapcontainskey(map, test));
     test = "not a key";
-    printf("%d\n", mapcontains(map, test));
+    printf("%d\n", mapcontainskey(map, test));
     test = NULL;
 }
 
@@ -143,13 +147,13 @@ void printreplace(struct Map *map) {
 }
 
 void printreplacepair(struct Map *map) {
-    printf("----------START REPLACE----------\n");
+    printf("----------START REPLACE PAIR----------\n");
     char* test = "test2";
     int* old = NULL;
     static int old_val = 15;
     old = &old_val;
     int* def = NULL;
-    int defval = 7;
+    static int defval = 7;
     def = &defval;
     printf("----------CURRENT ENTRIES----------\n");
     printentries(map);
@@ -161,6 +165,25 @@ void printreplacepair(struct Map *map) {
     test = NULL;
     def = NULL;
     old = NULL;
+}
+
+void printcontainsvalue(struct Map *map) {
+    printf("----------START REPLACE PAIR----------\n");
+    int val = 7;
+    int* ptr = &val;
+    printf("Map contains value %d: %d\n", val, mapcontainsvalue(map, ptr));
+    val = 15;
+    printf("Map contains value %d: %d\n", val, mapcontainsvalue(map, ptr));
+    ptr = NULL;
+}
+
+void printforeach(struct Map *map) {
+    printf("----------START FOREACH----------\n");
+    printf("Entries before foreach:\n");
+    printentries(map);
+    mapforeach(map, incrementvalue);
+    printf("Entries after foreach:\n");
+    printentries(map);
 }
 
 void runtests(struct Map *map) {
@@ -178,6 +201,8 @@ void runtests(struct Map *map) {
     init_map(map);
     printreplace(map);
     printreplacepair(map);
+    printcontainsvalue(map);
+    printforeach(map);
 }
 
 int main() {
