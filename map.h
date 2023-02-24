@@ -24,13 +24,13 @@ enum type {
     LONG_DOUBLE
 };
 
-//Declaration of the struct Map
-struct Map {
+//Declaration of the Map
+typedef struct {
     size_t map_size; //The size of the map
     struct Entry* entries; //The entries inside the map
     enum type key_type; //The data type of the key
     enum type value_type; //The data type of the value
-} Map_init = {0, NULL, INTEGER, INTEGER};
+} Map;
 
 
 //Declaration of the struct Entry
@@ -39,26 +39,42 @@ struct Entry {
     void* value; //The value
 };
 
+Map* mapcreate(enum type key_type, enum type value_type);
 static bool mapkeycmp(enum type key_type, void* map_key, void* key);
-bool mapempty(struct Map *map);
-void* mapget(struct Map *map, void* key);
-void* mapgetordefault(struct Map *map, void* key, void* def);
-bool mapcontainskey(struct Map *map, void* key);
-bool mapcontainsvalue(struct Map *map, void* value);
-static void mapset(struct Map *map, void* key, void* value);
-void mapput(struct Map *map, void* key, void* value);
-bool mapputifabsent(struct Map *map, void* key, void* value);
-size_t mapsize(struct Map *map);
-struct Entry* mapentries(struct Map *map);
-void** mapkeys(struct Map *map);
-void** mapvalues(struct Map *map);
-void* mapremove(struct Map *map, void* key);
-bool mapremovepair(struct Map *map, void* key, void* value);
-void* mapreplace(struct Map *map, void* key, void* value);
-bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value);
-void mapforeach(struct Map *map, void (*operation)(void*, void*));
-void* mapmerge(struct Map *map, void *key, void *value, void (*operation)(void*, void*));
-void mapfree(struct Map *map);
+bool mapempty(Map *map);
+void* mapget(Map *map, void* key);
+void* mapgetordefault(Map *map, void* key, void* def);
+bool mapcontainskey(Map *map, void* key);
+bool mapcontainsvalue(Map *map, void* value);
+static void mapset(Map *map, void* key, void* value);
+void mapput(Map *map, void* key, void* value);
+bool mapputifabsent(Map *map, void* key, void* value);
+size_t mapsize(Map *map);
+struct Entry* mapentries(Map *map);
+void** mapkeys(Map *map);
+void** mapvalues(Map *map);
+void* mapremove(Map *map, void* key);
+bool mapremovepair(Map *map, void* key, void* value);
+void* mapreplace(Map *map, void* key, void* value);
+bool mapreplacepair(Map *map, void* key, void* old_value, void* value);
+void mapforeach(Map *map, void (*operation)(void*, void*));
+void* mapmerge(Map *map, void *key, void *value, void (*operation)(void*, void*));
+void mapfree(Map *map);
+
+/*
+    Create a map and returns its pointer
+    @param key_type The type of the key
+    @param value_type The type of the value
+    @return The pointer to the map
+*/
+Map* mapcreate(enum type key_type, enum type value_type) {
+    Map *map = malloc(sizeof(Map));
+    map->entries = NULL;
+    map->map_size = 0;
+    map->key_type = key_type;
+    map->value_type = value_type;
+    return map;
+}
 
 /*
     This function compares two keys and returns if they're equal or not
@@ -107,7 +123,7 @@ static bool mapkeycmp(enum type key_type, void* map_key, void* key) {
     @param map The map
     @return Is the map empty or not
 */
-bool mapempty(struct Map *map) {
+bool mapempty(Map *map) {
     return map->map_size == 0;
 }
 
@@ -117,7 +133,7 @@ bool mapempty(struct Map *map) {
     @param key The key from which the value needs to be extracted
     @return The value behind the key or NULL, if the map doesn't contain such key
 */
-void* mapget(struct Map *map, void* key) {
+void* mapget(Map *map, void* key) {
     for (size_t i = 0; i < map->map_size; i++) {
         if (mapkeycmp(map->key_type, map->entries[i].key, key)) {
             return map->entries[i].value;
@@ -133,7 +149,7 @@ void* mapget(struct Map *map, void* key) {
     @param def The default value if the key is not in the map
     @return The value behind the key or the default value, if the map doesn't contain such key
 */
-void* mapgetordefault(struct Map *map, void* key, void* def) {
+void* mapgetordefault(Map *map, void* key, void* def) {
     void* result = mapget(map, key);
     if (result != NULL) return result;
     return def;
@@ -146,7 +162,7 @@ void* mapgetordefault(struct Map *map, void* key, void* def) {
     @param key The key 
     @return Does the map contain the key
 */
-bool mapcontainskey(struct Map *map, void* key) {
+bool mapcontainskey(Map *map, void* key) {
     return (mapget(map, key) != NULL);
 }
 
@@ -156,7 +172,7 @@ bool mapcontainskey(struct Map *map, void* key) {
     @param value The value 
     @return Does the map contain the value
 */
-bool mapcontainsvalue(struct Map *map, void* value) {
+bool mapcontainsvalue(Map *map, void* value) {
     void** values = mapvalues(map);
     bool contains_value = false;
     for (size_t i = 0; i < mapsize(map); i++) {
@@ -175,7 +191,7 @@ bool mapcontainsvalue(struct Map *map, void* value) {
     @param key The key where the value needs to be changed
     @param value The new value
 */
-static void mapset(struct Map *map, void* key, void* value) {
+static void mapset(Map *map, void* key, void* value) {
     for (size_t i = 0; i < map->map_size; i++) {
         if (mapkeycmp(map->key_type, map->entries[i].key, key)) {
             map->entries[i].value = value;
@@ -190,7 +206,7 @@ static void mapset(struct Map *map, void* key, void* value) {
     @param key The key of the entry
     @param The value linked to the key
 */
-void mapput(struct Map *map, void* key, void* value) {
+void mapput(Map *map, void* key, void* value) {
     if (!mapcontainskey(map, key)) {
         map->map_size++;
         if (map->map_size == 1) map->entries = (struct Entry*)malloc(sizeof(struct Entry));
@@ -207,7 +223,7 @@ void mapput(struct Map *map, void* key, void* value) {
     @param The value linked to the key
     @return If the key was able to be put in the map
 */
-bool mapputifabsent(struct Map *map, void* key, void* value) {
+bool mapputifabsent(Map *map, void* key, void* value) {
     if (mapget(map, key) != NULL) return false;
     mapput(map, key, value);
     return true;
@@ -218,7 +234,7 @@ bool mapputifabsent(struct Map *map, void* key, void* value) {
     @param map The map from which the size needs to be retrieved
     @return The size of the map
 */
-size_t mapsize(struct Map *map) {
+size_t mapsize(Map *map) {
     return map->map_size;
 }
 
@@ -227,7 +243,7 @@ size_t mapsize(struct Map *map) {
     @param map The map from which the entries need to be retrieved
     @return All the entries saved in the map
 */
-struct Entry* mapentries(struct Map *map) {
+struct Entry* mapentries(Map *map) {
     return map->entries;
 }
 
@@ -236,7 +252,7 @@ struct Entry* mapentries(struct Map *map) {
     @param map The map from which the keys need to be retrieved
     @return All the keys saved in the map
 */
-void** mapkeys(struct Map *map) {
+void** mapkeys(Map *map) {
     void** keys = malloc(map->map_size * sizeof(void*));
     for (size_t i = 0; i < map->map_size; i++) keys[i] = map->entries[i].key;
     return keys;
@@ -247,7 +263,7 @@ void** mapkeys(struct Map *map) {
     @param map The map from which the values need to be retrieved
     @return All the values saved in the map
 */
-void** mapvalues(struct Map *map) {
+void** mapvalues(Map *map) {
     void** values = malloc(map->map_size * sizeof(void*));
     for (size_t i = 0; i < map->map_size; i++) values[i] = map->entries[i].value;
     return values;
@@ -259,7 +275,7 @@ void** mapvalues(struct Map *map) {
     @param key The key to be removed
     @return The value which was linked to the key
 */
-void* mapremove(struct Map *map, void* key) {
+void* mapremove(Map *map, void* key) {
     struct Entry* entries = mapentries(map);
     void* value = NULL;
     for (size_t i = 0; i < mapsize(map); i++) {
@@ -283,7 +299,7 @@ void* mapremove(struct Map *map, void* key) {
     @param value The value to the pair
     @return Returns true if the key-value-relation had been present in the map and has thus been removed
 */
-bool mapremovepair(struct Map *map, void* key, void* value) {
+bool mapremovepair(Map *map, void* key, void* value) {
     if (!(mapcontainskey(map, key) && mapkeycmp(map->value_type, mapget(map, key), value))) return false;
     mapremove(map, key);
     return true;
@@ -296,7 +312,7 @@ bool mapremovepair(struct Map *map, void* key, void* value) {
     @param value The new value
     @return Returns the old value linked to the key before the replacement
 */
-void* mapreplace(struct Map *map, void* key, void* value) {
+void* mapreplace(Map *map, void* key, void* value) {
     struct Entry* entries = mapentries(map);
     void* old_value = NULL;
     for (size_t i = 0; i < mapsize(map); i++) {
@@ -318,7 +334,7 @@ void* mapreplace(struct Map *map, void* key, void* value) {
     @param value The new value
     @return Returns true if the old_value actually was linked to the key, thus was replaced by value
 */
-bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value) {
+bool mapreplacepair(Map *map, void* key, void* old_value, void* value) {
     if (!(mapcontainskey(map, key) && mapkeycmp(map->value_type, mapget(map, key), old_value))) return false;
     mapreplace(map, key, value);
     return true;
@@ -330,7 +346,7 @@ bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value) {
     @param operation The function which is run through every Entry 
         (takes as parameters (void* key, void* value))
 */
-void mapforeach(struct Map *map, void (*operation)(void*, void*)) {
+void mapforeach(Map *map, void (*operation)(void*, void*)) {
     struct Entry* entries = mapentries(map);
     for (size_t i = 0; i < mapsize(map); i++) operation(entries[i].key, entries[i].value);
     entries = NULL;
@@ -344,7 +360,7 @@ void mapforeach(struct Map *map, void (*operation)(void*, void*)) {
     @param value The new value
     @param operation The operation with which the new value gets calculated
 */
-void* mapmerge(struct Map *map, void *key, void *value, void (*operation)(void*, void*)) {
+void* mapmerge(Map *map, void *key, void *value, void (*operation)(void*, void*)) {
     void* map_val = mapget(map, key);
     if (map_val == NULL && value != NULL) {
         mapput(map, key, value);
@@ -356,11 +372,22 @@ void* mapmerge(struct Map *map, void *key, void *value, void (*operation)(void*,
 }
 
 /*
-    Delocates the memory from the map (only the entries-pointer,
+    Delocates the memory from the map (only the entries-pointer, the keys and
+    values need to be freed individually if dynamically allocated), but keeps the map
+    itself initialized
+    @param map The map to be resets
+*/
+void mapclear(Map *map) {
+    free(map->entries);
+    map->map_size = 0;
+}
+
+/*
+    Delocates the memory from the map (only the entries-pointer and the map-pointer,
     the keys and values need to be freed individually if dynamically allocated)
     @param map The map to be resets
 */
-void mapfree(struct Map *map) {
+void mapfree(Map *map) {
     free(map->entries);
-    map->map_size = 0;
+    free(map);
 }
