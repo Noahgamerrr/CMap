@@ -57,6 +57,7 @@ bool mapremovepair(struct Map *map, void* key, void* value);
 void* mapreplace(struct Map *map, void* key, void* value);
 bool mapreplacepair(struct Map *map, void* key, void* old_value, void* value);
 void mapforeach(struct Map *map, void (*operation)(void*, void*));
+void* mapmerge(struct Map *map, void *key, void *value, void (*operation)(void*, void*));
 void mapfree(struct Map *map);
 
 /*
@@ -333,6 +334,25 @@ void mapforeach(struct Map *map, void (*operation)(void*, void*)) {
     struct Entry* entries = mapentries(map);
     for (size_t i = 0; i < mapsize(map); i++) operation(entries[i].key, entries[i].value);
     entries = NULL;
+}
+
+/*
+    Takes a value and calculates with the old_value already assigned to the key
+    a new value
+    @param map The map
+    @param key The key for which the new value needs to be calculated
+    @param value The new value
+    @param operation The operation with which the new value gets calculated
+*/
+void* mapmerge(struct Map *map, void *key, void *value, void (*operation)(void*, void*)) {
+    void* map_val = mapget(map, key);
+    if (map_val == NULL && value != NULL) {
+        mapput(map, key, value);
+        return NULL;
+    }
+    else operation(map_val, value);
+    mapset(map, key, map_val);
+    return map_val;
 }
 
 /*

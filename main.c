@@ -3,6 +3,9 @@
 
 int val = 5;
 int val2 = 7;
+int val3 = 8;
+int val4 = 10;
+struct Map map1;
 
 void init_map(struct Map* map) {
     char *key = "test1";
@@ -19,9 +22,36 @@ void init_map(struct Map* map) {
     ptr2 = NULL;
 }
 
+void init_map2(struct Map *map) {
+    char *key = "test3";
+    char *key2 = "test4";
+    char *key3 = "test2";
+    int *ptr = &val3;
+    int *ptr2 = &val4;
+    int *ptr3 = &val2;
+    mapput(map, key, ptr);
+    mapput(map, key2, ptr2);
+    mapput(map, key3, ptr3);
+    key = NULL;
+    key2 = NULL;
+    key3 = NULL;
+    ptr = NULL;
+    ptr2 = NULL;
+    ptr3 = NULL;
+}
+
 void incrementvalue(void* key, void* value) {
     (*(int*)value)++;
 }
+
+void mergeval(void* old_value, void* value) {
+    *(int*)old_value = *(int*)value;
+}
+
+void mergemap(void* key, void* value) {
+    mapmerge(&map1, key, value, mergeval);
+}
+
 
 void printputifabsent(struct Map *map) {
     static int val3 = 8;
@@ -186,8 +216,18 @@ void printforeach(struct Map *map) {
     printentries(map);
 }
 
-void runtests(struct Map *map) {
+void printmerge(struct Map *map, struct Map *map2) {
+    printf("----------START MERGE----------\n");
+    printf("Entries of 2nd map:\n");
+    printentries(map2);
+    mapforeach(map2, mergemap);
+    printf("Entries after merge:\n");
+    printentries(map);
+}
+
+void runtests(struct Map *map, struct Map *map2) {
     init_map(map);
+    init_map2(map2);
     printputifabsent(map);
     printkeys(map);
     printvalues(map);
@@ -203,13 +243,17 @@ void runtests(struct Map *map) {
     printreplacepair(map);
     printcontainsvalue(map);
     printforeach(map);
+    printmerge(map, map2);
 }
 
 int main() {
-    struct Map map = Map_init;
-    map.key_type = STRING;
-    runtests(&map);
+    map1 = Map_init;
+    struct Map map2 = Map_init;
+    map1.key_type = STRING;
+    map2.key_type = STRING;
+    runtests(&map1, &map2);
     printf("----------SUCCESSFUL----------");
-    mapfree(&map);
+    mapfree(&map1);
+    mapfree(&map2);
     return 0;
 }
