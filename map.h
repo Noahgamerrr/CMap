@@ -50,7 +50,6 @@ static void mapset(Map *map, void* key, void* value);
 void mapput(Map *map, void* key, void* value);
 bool mapputifabsent(Map *map, void* key, void* value);
 size_t mapsize(Map *map);
-struct Entry* mapentries(Map *map);
 void** mapkeys(Map *map);
 void** mapvalues(Map *map);
 void* mapremove(Map *map, void* key);
@@ -59,6 +58,8 @@ void* mapreplace(Map *map, void* key, void* value);
 bool mapreplacepair(Map *map, void* key, void* old_value, void* value);
 void mapforeach(Map *map, void (*operation)(void*, void*));
 void* mapmerge(Map *map, void *key, void *value, void (*operation)(void*, void*));
+void* mapcompute(Map *map, void* key, void (*operation)(void*, void*));
+void mapclear(Map *map);
 void mapfree(Map *map);
 
 /*
@@ -239,15 +240,6 @@ size_t mapsize(Map *map) {
 }
 
 /*
-    Gets all the entries saved in the map
-    @param map The map from which the entries need to be retrieved
-    @return All the entries saved in the map
-*/
-struct Entry* mapentries(Map *map) {
-    return map->entries;
-}
-
-/*
     Gets all the keys saved in the map
     @param map The map from which the keys need to be retrieved
     @return All the keys saved in the map
@@ -369,6 +361,21 @@ void* mapmerge(Map *map, void *key, void *value, void (*operation)(void*, void*)
     else operation(map_val, value);
     mapset(map, key, map_val);
     return map_val;
+}
+
+/*
+    Computes the new value to a given key given a computing function (only if a value
+    if already mapped to the key)
+    @param map The map
+    @param key The key
+    @param operation The computing function
+    @returns The newly computed value
+*/
+void* mapcompute(Map *map, void* key, void (*operation)(void*, void*)) {
+    void* val = mapget(map, key);
+    if (val == NULL) return NULL;
+    operation(key, val);
+    return val;
 }
 
 /*

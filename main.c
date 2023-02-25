@@ -225,6 +225,14 @@ void printmerge(Map *map, Map *map2) {
     printentries(map);
 }
 
+void printcompute(Map *map) {
+    printf("----------START COMPUTE----------\n");
+    char* key = "test2";
+    printf("Value of key test2 before compute: %d\n", *(int*)mapget(map, key));
+    mapcompute(map, key, incrementvalue);
+    printf("Value of key test2 after compute: %d\n", *(int*)mapget(map, key));
+}
+
 void runtests(Map *map, Map *map2) {
     init_map(map);
     init_map2(map2);
@@ -244,6 +252,7 @@ void runtests(Map *map, Map *map2) {
     printcontainsvalue(map);
     printforeach(map);
     printmerge(map, map2);
+    printcompute(map);
 }
 
 int main() {
