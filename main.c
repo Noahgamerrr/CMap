@@ -74,16 +74,18 @@ void printkeys(Map *map) {
 
 void printvalues(Map *map) {
     printf("----------START PRINT VALUES----------\n");
-    int** values = (int**)mapvalues(map);
-    for (size_t i = 0; i < mapsize(map); i++) printf("%d\n", *values[i]);
-    values = NULL;
+    char** keys = (char**)mapkeys(map);
+    for (size_t i = 0; i < mapsize(map); i++) printf("%s\n", keys[i]);
+    keys = NULL;
 }
 
 void printentries(Map *map) {
     printf("----------START PRINT ENTRIES----------\n");
-    struct Entry* entries = mapentries(map);
-    for (size_t i = 0; i < mapsize(map); i++) printf("%s: %d\n", (char*)entries[i].key, *(int*)entries[i].value);
-    entries = NULL;
+    char** keys = (char**)mapkeys(map);
+    int** values = (int**)mapkeys(map);
+    for (size_t i = 0; i < mapsize(map); i++) printf("%s: %d\n", keys[i], values[i]);
+    keys = NULL;
+    values = NULL;
 }
 
 void printget(Map *map) {
