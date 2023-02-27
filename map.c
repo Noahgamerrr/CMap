@@ -2,7 +2,7 @@
 
 #define MAX_STR_LEN 50
 
-//Declaration of the Map
+//A struct which saves a Map with Entries
 typedef struct mym {
     size_t map_size; //The size of the map
     Entry* entries; //The entries inside the map
@@ -11,7 +11,7 @@ typedef struct mym {
 } Map;
 
 
-//Declaration of the Entry
+//An entry which stores the key-value-pair
 typedef struct mye {
     void* key; //The key
     void* value; //The value
@@ -19,6 +19,7 @@ typedef struct mye {
 
 static bool mapkeycmp(enum type key_type, void* map_key, void* key);
 static void mapset(Map *map, void* key, void* value);
+static Entry* mapentries(Map *map);
 
 /*
     Create a map and returns its pointer
@@ -202,7 +203,7 @@ size_t mapsize(Map *map) {
     @param map The map from which the entries need to be retrieved
     @return All the entries saved in the map
 */
-Entry* mapentries(Map *map) {
+static Entry* mapentries(Map *map) {
     return map->entries;
 }
 

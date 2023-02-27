@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-//Declaration of the enum type which enumerates data types
+//Declaration of the enum type which enumerates data types saved in the map
 enum type {
     INTEGER,
     CHARACTER,
@@ -25,11 +25,8 @@ enum type {
     LONG_DOUBLE
 };
 
-//Declaration of the Map
 typedef struct mym Map;
 
-
-//Declaration of the Entry
 typedef struct mye Entry;
 
 Map* mapcreate(enum type key_type, enum type value_type);
