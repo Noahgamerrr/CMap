@@ -347,22 +347,32 @@ void* mapcompute(Map *map, void* key, void (*operation)(void*, void*)) {
 }
 
 /*
-    Delocates the memory from the map (only the entries-pointer, the keys and
-    values need to be freed individually if dynamically allocated), but keeps the map
-    itself initialized
+    Delocates the memory from the entries from the map
+    @param map The map where the entries need to be cleared
+*/
+void entriesclear(Map *map) {
+    for (size_t i = 0; i < mapsize(map); i++) {
+        free(map->entries[i].key);
+        free(map->entries[i].value);
+    }
+}
+
+/*
+    Delocates the memory from the map, but keeps the map itself initialized
     @param map The map to be resets
 */
 void mapclear(Map *map) {
+    entriesclear(map);
     free(map->entries);
     map->map_size = 0;
 }
 
 /*
-    Delocates the memory from the map (only the entries-pointer and the map-pointer,
-    the keys and values need to be freed individually if dynamically allocated)
+    Delocates the memory from the map and and the map itself
     @param map The map to be resets
 */
 void mapfree(Map *map) {
+    entriesclear(map);
     free(map->entries);
     free(map);
 }
