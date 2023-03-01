@@ -20,6 +20,7 @@ typedef struct mye {
 static bool mapkeycmp(enum type key_type, void* map_key, void* key);
 static void mapset(Map *map, void* key, void* value);
 static Entry* mapentries(Map *map);
+static void entryfree(Map *map);
 
 /*
     Create a map and returns its pointer
@@ -365,4 +366,33 @@ void mapclear(Map *map) {
 void mapfree(Map *map) {
     free(map->entries);
     free(map);
+}
+
+/*
+    Frees the key-value pairs from the entries
+    @param map The map from which the pairs need to be freed
+*/
+static void entryfree(Map *map) {
+    for (size_t i = 0; i < mapsize(map); i++) {
+        free(map->entries[i].key);
+        free(map->entries[i].value);
+    }
+}
+
+/*
+    Like mapclear(), but also frees the key-value pairs
+    @param map The map to be cleared
+*/
+void mapdeepclear(Map *map) {
+    entryfree(map);
+    mapclear(map);
+}
+
+/*
+    Like mapfree(), but also frees the key-value pairs
+    @param map The map to be freed
+*/
+void mapdeepfree(Map *map) {
+    entryfree(map);
+    mapfree(map);
 }
