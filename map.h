@@ -51,5 +51,7 @@ void mapclear(Map *map);
 void mapfree(Map *map);
 void mapdeepclear(Map *map);
 void mapdeepfree(Map *map);
+void mapvalueclear(Map *map);
+void mapvaluefree(Map *map);
 
 #endif
