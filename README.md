@@ -37,4 +37,4 @@ Last but not least, run the binary file:
 ```
 
 ## Mentioning
-You're free to use my map as you like, extend it, improve its functionality etc.. If however, you use it in your own project and it goes public, please do mention me somewhere :)
+You're free to use my map as you like, extend it, improve its functionality etc.. If however, you use it in your own project and you publish it, please mention me somewhere :\)
